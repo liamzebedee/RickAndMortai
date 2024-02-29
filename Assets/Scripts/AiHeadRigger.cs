@@ -121,22 +121,26 @@ public class AIHeadRigger : MonoBehaviour
 
     public void RenderGeneration(string characterKey, string generationId)
     {
-        this.generationId = generationId;
+        this.generationId = generationId; // TODO - necessary?
+        RenderGenerationFromPath($"local-image-gen/headshot/data/3d/{characterKey}/{generationId}/logs");
+    }
 
+    public void RenderGenerationFromPath(string dir)
+    {
         //Approach 1:
         //ObjImporter ImporterMesh = new ObjImporter();
         //Approach 2:
         //var loadedObject : GameObject = Instantiate(Resources.Load("modelName"));/
 
         // Approach 3:
-        GameObject head = new OBJLoader().Load($"local-image-gen/headshot/data/3d/{characterKey}/{generationId}_mesh/logs/image.obj");
-        head.name = $"{this.characterKey} (${generationId.Substring(0, 5)})";
+        GameObject head = new OBJLoader().Load($"{dir}/image.obj");
+        // head.name = $"{this.characterKey} (${generationId.Substring(0, 5)})";
 
         // Add texture to head.
         //
 
         // 1. Load the Material.
-        Dictionary<string, Material> materials = new MTLLoader().Load($"local-image-gen/headshot/data/3d/{characterKey}/{generationId}_mesh/logs/image.mtl");
+        Dictionary<string, Material> materials = new MTLLoader().Load($"{dir}/image.mtl");
         Material defaultMat = materials["defaultMat"];
 
         // 2. Configure it.
@@ -193,3 +197,33 @@ public class AIHeadRigger : MonoBehaviour
         }
     }
 }
+
+
+
+
+
+
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(AIHeadRigger))]
+public class AIHeadRigger_Editor : Editor
+{
+
+    private void OnEnable()
+    {
+    }
+
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        AIHeadRigger yourComponent = (AIHeadRigger)target;
+
+        if (GUILayout.Button("Render generation"))
+        {
+            yourComponent.RenderGenerationFromPath("Assets/3dHeads/walter white/logs");
+        }
+    }
+
+}
+#endif

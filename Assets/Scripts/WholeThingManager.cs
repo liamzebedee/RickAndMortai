@@ -13,39 +13,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using static YouTubeChatFromSteven;
 
-public class TopicVoteResults
-{
-    public string topic;
-    public string author;
-    public string backupTopic;
-    public string backupAuthor;
-}
-
-public class CharacterVotesData
-{
-    public static string characterVotesFilePath = $"{WholeThingManager.Singleton.GetDataDir()}/character-votes.json";
-    
-
-    public CharacterVoteResults[] voteResults = new CharacterVoteResults[] { };
-
-    public static CharacterVotesData ReadFromDisk()
-    {
-        Debug.Log(characterVotesFilePath);
-        if(!File.Exists(characterVotesFilePath))
-        {
-            throw new Exception("character-votes.json not found");
-        }
-        string data = File.ReadAllText(characterVotesFilePath);
-        var x = JsonConvert.DeserializeObject<CharacterVotesData>(data);
-        return x;
-    }
-
-    public void WriteToDisk()
-    {
-        string json = JsonConvert.SerializeObject(this, Formatting.Indented);
-        File.WriteAllText(characterVotesFilePath, json);
-    }
-}
 
 public class Lookup3dHeads
 {
@@ -78,24 +45,6 @@ public class Lookup3dHeads
             x.selectedGenerations[res.characterKey] = res.selectedGeneration;
         }
 
-        // List all of the scenes in saved-scenes/
-        //foreach (string dir in PathUtils.GetSubDirs($"data-test/saved-scenes/"))
-        //{
-        //    if (!File.Exists($"data-test/saved-scenes/{dir}/scene.json")) continue;
-
-        //    // Load the scene.json
-        //    string data = File.ReadAllText($"data-test/saved-scenes/{dir}/scene.json");
-        //    var scene = JsonConvert.DeserializeObject<RickAndMortyScene>(data);
-
-        //    if (scene.aiArt.character != null)
-        //    {
-        //        var character = scene.aiArt.character;
-        //        if (character.head3d == null) continue;
-        //        if (character.head3d.selectedGeneration.Length == 0) continue;
-        //        x.selectedGenerations[character.characterName] = character.head3d.selectedGeneration;
-        //    }
-        //}
-
         return x;
     }
 }
@@ -111,13 +60,15 @@ public class WholeThingManager : MonoBehaviour
     private static string REPLAY_OLD_SCENE = "Replay old scene";
     private static string TEST_WORKFLOWS = "Test workflows";
     private static string RUN_GENERATION_SERVER = "Run generation server";
+    private static string DO_NUFIN = "Do nufin'";
 
     public static string[] RUN_MODE_OPTIONS = new string[] {
         RUN_MAIN_LOOP,
         GENERATE_CUSTOM_SCRIPT,
         REPLAY_OLD_SCENE,
         TEST_WORKFLOWS,
-        RUN_GENERATION_SERVER
+        RUN_GENERATION_SERVER,
+        DO_NUFIN
     };
 
     [Range(0, 4)]
@@ -143,25 +94,39 @@ public class WholeThingManager : MonoBehaviour
 
     public bool currentlyRunningScene = false;
 
+    [HideInInspector]
     public TMP_Text textField;
+    [HideInInspector]
     public TMP_Text dialogBox;
 
 
 
-
+    [HideInInspector]
     public TMP_Text topicOption1;
+    [HideInInspector]
     public TMP_Text topic1Votes;
+    [HideInInspector]
     public BarWidthController topic1Bar;
+    [HideInInspector]
     public TMP_Text topicOption2;
+    [HideInInspector]
     public TMP_Text topic2Votes;
+    [HideInInspector]
     public BarWidthController topic2Bar;
+    [HideInInspector]
     public TMP_Text topicOption3;
+    [HideInInspector]
     public TMP_Text topic3Votes;
+    [HideInInspector]
     public BarWidthController topic3Bar;
+    [HideInInspector]
     public TMP_Text topicTitleThing;
+    [HideInInspector]
     public TMP_Text titleText;
 
+    [HideInInspector]
     public GameObject bottomBarVotingInfoText;
+    [HideInInspector]
     public GameObject topBarDiscordPluf;
     public string firstPrompt = "Banana";
     public bool runMainLoop = true;
@@ -207,9 +172,7 @@ public class WholeThingManager : MonoBehaviour
     public bool useProdData = false;
     public string GetDataDir()
     {
-        if(useProdData)
-            return "data-prod/";
-        return "data-test/";
+        return "database/";
     }
     
     public void SetUI(GameObject ui)
@@ -227,7 +190,7 @@ public class WholeThingManager : MonoBehaviour
 
     private void loadConfig()
     {
-        string configFilePath = Path.Combine(Application.dataPath, "config.json");
+        string configFilePath = Path.Combine(WholeThingManager.Singleton.GetDataDir(), "config.json");
 
         if (!File.Exists(configFilePath))
         {
@@ -331,7 +294,50 @@ public class WholeThingManager : MonoBehaviour
             enableOrDisableVotingUI(false);
 
             Debug.Log("generating one custom scene then playing it");
-            var scene = await CreateSceneFromScript(customScript, "me", true, true);
+            // var scene = await CreateSceneFromScript(customScript, "me", true, true);
+            var scene = await CreateScene(@"Title: Rick and Morty and the AI Builder Club Adventure
+
+INT. GARAGE - DAY
+
+RICK is tinkering with a strange, glowing device on his workbench. MORTY enters, looking curious.
+
+MORTY: Uh, Rick, what are you working on now?
+
+RICK: Morty, burp I'm glad you asked. This, Morty, is a portal to the future of innovation, the AI Builder Club. It's a place where the brightest minds come together to push the boundaries of what's possible with AI.
+
+MORTY: AI Builder Club? What's that?
+
+RICK: Imagine, Morty, a place run out of Aura Ventures in Sydney. A six-week residency program where engineers, hackers, and enthusiasts build AI-focused ideas. It's like a playground for the brainy.
+
+MORTY: Wow, Rick, that sounds amazing! Can we go?
+
+RICK: That's the plan, Morty. We're gonna drop in on their inaugural residency. They've got people from Canva, Atlassian, Eucalyptus, and PwC. It's a breeding ground for the next big thing in generative AI.
+
+They step through the portal.
+
+INT. AI BUILDER CLUB - DAY
+
+The room buzzes with activity. Teams huddle around glowing screens, discussing ideas and typing frantically.
+
+RICK: See, Morty? This is where the magic happens. Annie Liao, an investor here, says they're breaking down barriers for Aussie startups. It's innovation on steroids.
+
+MORTY: And everyone seems so focused and excited!
+
+RICK: Exactly, Morty. They're part of a community that's not just local; it's global. They've got a Slack channel with over 150 participants sharing ideas, challenges, and successes.
+
+A group of residents notice Rick and Morty.
+
+RESIDENT: Hey, you're Rick and Morty, right? What brings you here?
+
+RICK: We're here to observe, maybe contribute some of our own genius to the mix. Tell me, how's the program shaping your projects?
+
+RESIDENT: It's incredible. The access to mentors, resources, and like-minded people is unparalleled. We're not just building AI; we're building the future.
+
+MORTY: That's so cool. Are there plans to expand?
+
+RESIDENT: Absolutely. There's interest from all over the country and internationally. Plus, they're planning to take four accelerator cohorts per year, keeping this co-working space buzzing.
+
+RICK: Impressive. Morty, there's a lot we can learn here. And maybe, just maybe, we can contribute something to their mission. Let's mingle, pick some brains, and see what kind of chaos we can stir up in the name of progress.", "me", "banana", "me", usingVoiceActing);
 
             Debug.Log("rendering newly generated scene");
             await RunScene(scene);
@@ -1952,7 +1958,7 @@ public class WholeThingManager : MonoBehaviour
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(WholeThingManager))]
-public class RandomScript_Editor : Editor
+public class WholeThingManager_Editor : Editor
 {
     private SerializedProperty runModeIndex;
 
@@ -2013,7 +2019,7 @@ public class RandomScript_Editor : Editor
         EditorGUI.EndChangeCheck();
 
 
-        DrawDefaultInspector();
+        // DrawDefaultInspector();
     }
 }
 #endif

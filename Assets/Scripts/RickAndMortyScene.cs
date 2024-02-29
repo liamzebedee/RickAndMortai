@@ -7,8 +7,6 @@ using Newtonsoft.Json;
 
 public class RickAndMortyScene
 {
-
-
     public string id;
 
     // Title string / initial prompt.
